@@ -19,10 +19,11 @@ export class MongoService {
         }
     }
 
-    async checkMatchExists(matchId) {
+    async checkMatchExists(match) {
         try {
+            let matchId = `${match.date}_${match.homeTeam}_vs_${match.awayTeam}`
             await this.connect();
-            const collection = this.database.collection('matches');
+            const collection = this.database.collection('teste');
             const query = { match_id: matchId };
             const existingMatch = await collection.findOne(query);
             return existingMatch !== null;
@@ -35,9 +36,8 @@ export class MongoService {
     async saveMatchData(matchData) {
         try {
             await this.connect();
-            const collection = this.database.collection('matches');
+            const collection = this.database.collection('teste');
             await collection.insertOne(matchData);
-            logMessage(`Match data for ${matchData.match_id} inserted successfully.`);
         } catch (error) {
             logMessage(`Failed to save match data: ${error.message}`);
             throw error;

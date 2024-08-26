@@ -2,3 +2,6 @@ a fazer.txt
 node_modules
 jsonService_DEPRECATED.js
 credencial.txt
+/python
+*.pdf
+testeStats.js

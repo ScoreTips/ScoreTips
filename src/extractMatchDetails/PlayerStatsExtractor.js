@@ -1,24 +1,19 @@
 import * as cheerio from 'cheerio';
 
 export class PlayerStatsExtractor {
-    extractPlayerStats(html, teamName) {
+    extractPlayerStats(html) {
         const $ = cheerio.load(html);
         const playersStats = {};
 
-        this.extractFieldPlayerStats($, playersStats, teamName);
-        this.extractGoalkeeperStats($, playersStats, teamName);
+        $('div.table_container').each((tableIndex, table) => {
+            const teamName = this.getTeamNameFromCaption($(table).find('caption').text());
 
-        return Object.values(playersStats);
-    }
-
-    extractFieldPlayerStats($, playersStats, teamName) {
-        $('div[id^="all_player_stats"] table.stats_table').each((tableIndex, table) => {
-            $(table).find('tbody tr').each((index, row) => {
+            $(table).find('table.stats_table tbody tr').each((index, row) => {
                 const playerName = $(row).find('[data-stat="player"]').text().trim();
                 const position = $(row).find('[data-stat="position"]').text().trim();
 
-                if (!playerName) return;
-
+                if (!playerName || !teamName) return;
+                
                 if (!playersStats[playerName]) {
                     playersStats[playerName] = this.initializePlayerStats($, row, teamName, playerName, position);
                 }
@@ -31,25 +26,13 @@ export class PlayerStatsExtractor {
                 }
             });
         });
+
+        return Object.values(playersStats);
     }
 
-    extractGoalkeeperStats($, playersStats, teamName) {
-        $('div[id^="all_keeper_stats"] table.stats_table').each((tableIndex, table) => {
-            $(table).find('tbody tr').each((index, row) => {
-                const playerName = $(row).find('[data-stat="player"]').text().trim();
-
-                if (!playerName) return;
-
-                if (!playersStats[playerName]) {
-                    playersStats[playerName] = this.initializePlayerStats($, row, teamName, playerName, "GK");
-                }
-
-                playersStats[playerName] = {
-                    ...playersStats[playerName],
-                    ...this.mapGoalkeeperStats($, row)
-                };
-            });
-        });
+    getTeamNameFromCaption(captionText) {
+        const teamName = captionText.split(' Estatísticas do jogador')[0].trim();
+        return teamName || null;
     }
 
     initializePlayerStats($, row, teamName, playerName, position) {
