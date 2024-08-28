@@ -4,13 +4,14 @@ import ProbabilityCalculator from "./src/domain/services/ProbabilityCalculator.j
 import EventProbabilityCalculator from "./src/domain/services/EventProbabilityCalculator.js";
 import StatisticsEngine from "./src/domain/services/StatisticsEngine.js";
 import TeamStatisticsGenerator from "./src/domain/services/TeamStatisticsGenerator.js";
+import dotenv from "dotenv";
+dotenv.config({ path: '../constants/.env' });
 
 async function main() {
   try {
     console.log("Iniciando a aplicação...");
 
-    const mongoUri =
-      "mongodb+srv://scoretipsadmin:mq87igW7MQJX7tTp@scoretips.ogtez.mongodb.net/?retryWrites=true&w=majority&appName=ScoreTips"; // URI do MongoDB
+    const mongoUri = process.env.mongoUri; // URI do MongoDB
     const matchesDbName = "matchesData"; // Nome do banco de dados de origem
     const statsDbName = 'Statistics'
 
