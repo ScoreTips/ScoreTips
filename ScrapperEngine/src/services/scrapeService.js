@@ -33,7 +33,6 @@ export class ScrapeService {
         for (const match of matches) {
             let homeTeam = match.homeTeam;
             let awayTeam = match.awayTeam;
-          console.log(match)
             // Verifica se a partida já foi inserida no banco de dados
             const matchExists = await this.mongoService.checkMatchExists(match);
 
@@ -77,7 +76,7 @@ export class ScrapeService {
                 // Inserir no banco de dados
                 await this.mongoService.saveMatchData(matchData);
                 logMessage(`Partida ${homeTeam} vs ${awayTeam} salva no banco de dados.`);
-                await new Promise((resolve) => setTimeout(resolve, 8000));
+                await new Promise((resolve) => setTimeout(resolve, 8100));
             } else {
                 logMessage(`Partida ${homeTeam || match.homeTeam} vs ${awayTeam || match.awayTeam} já existente no banco de dados.`);
             }

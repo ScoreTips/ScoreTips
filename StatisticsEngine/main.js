@@ -4,6 +4,7 @@ import ProbabilityCalculator from "./src/domain/services/ProbabilityCalculator.j
 import EventProbabilityCalculator from "./src/domain/services/EventProbabilityCalculator.js";
 import StatisticsEngine from "./src/domain/services/StatisticsEngine.js";
 import TeamStatisticsGenerator from "./src/domain/services/TeamStatisticsGenerator.js";
+import PlayerStatisticsGenerator from "./src/domain/services/PlayerStatisticsGenerator.js";
 import dotenv from "dotenv";
 dotenv.config({ path: '../constants/.env' });
 
@@ -13,7 +14,7 @@ async function main() {
 
     const mongoUri = process.env.mongoUri; // URI do MongoDB
     const matchesDbName = "matchesData"; // Nome do banco de dados de origem
-    const statsDbName = 'Statistics'
+    const statsDbName = 'Statistics'; // Nome do banco de dados de destino
 
     // Conectando ao banco de dados matchesData
     const matchesMongoService = new MongoService(mongoUri, matchesDbName);
@@ -28,6 +29,10 @@ async function main() {
       probabilityCalculator,
       eventProbabilityCalculator
     );
+    const playerStatisticsGenerator = new PlayerStatisticsGenerator(
+      matchRepository,
+      probabilityCalculator
+    );
 
     // Mudando para o banco de dados Statistics
     const statisticsMongoService = new MongoService(mongoUri, statsDbName);
@@ -36,6 +41,7 @@ async function main() {
 
     const statisticsEngine = new StatisticsEngine(
       teamStatisticsGenerator,
+      playerStatisticsGenerator,
       matchRepository,
       statisticsMongoService
     );

@@ -6,49 +6,25 @@ export class PlayerStatsExtractor {
         const playersStats = {};
 
         $('div.table_container').each((tableIndex, table) => {
-            const captionText = $(table).find('caption').text();
+            const teamName = this.getTeamNameFromCaption($(table).find('caption').text());
 
-            if (captionText.includes('Estatísticas de goleiro')) {
-                // Tabela de goleiros
-                $(table).find('table.stats_table tbody tr').each((index, row) => {
-                    const playerName = $(row).find('[data-stat="player"]').text().trim();
+            $(table).find('table.stats_table tbody tr').each((index, row) => {
+                const playerName = $(row).find('[data-stat="player"]').text().trim();
+                const position = $(row).find('[data-stat="position"]').text().trim();
 
-                    if (!playerName) {
-                        console.log('Nome do jogador não encontrado na linha:', index);
-                        return;
-                    }
-
-                    const goalkeeperStats = this.mapGoalkeeperStats($, row);
-                    // console.log(`Estatísticas de ${playerName} (Goleiro):`, goalkeeperStats);
-
-                    playersStats[playerName] = {
-                        ...playersStats[playerName],
-                        ...goalkeeperStats
-                    };
-                });
-            } else if (captionText.includes('Estatísticas do jogador')) {
-                // Tabela de jogadores de linha
-                const teamName = this.getTeamNameFromCaption(captionText);
-
-                if (!teamName) {
-                    console.log('Nome do time não encontrado na legenda:', captionText);
-                    return;
+                if (!playerName || !teamName) return;
+                
+                if (!playersStats[playerName]) {
+                    playersStats[playerName] = this.initializePlayerStats($, row, teamName, playerName, position);
                 }
 
-                $(table).find('table.stats_table tbody tr').each((index, row) => {
-                    const playerName = $(row).find('[data-stat="player"]').text().trim();
-                    const position = $(row).find('[data-stat="position"]').text().trim();
-
-                    if (!playerName) {
-                        console.log('Nome do jogador não encontrado na linha:', index);
-                        return;
-                    }
-
-                    if (!playersStats[playerName]) {
-                        playersStats[playerName] = this.initializePlayerStats($, row, teamName, playerName, position);
-                    }
-                });
-            }
+                if (position !== "GK") {
+                    playersStats[playerName] = {
+                        ...playersStats[playerName],
+                        ...this.mapFieldPlayerStats($, row)
+                    };
+                }
+            });
         });
 
         return Object.values(playersStats);
@@ -66,8 +42,13 @@ export class PlayerStatsExtractor {
             shirtNumber: $(row).find('[data-stat="shirtnumber"]').text().trim() || "N/A",
             nationality: $(row).find('[data-stat="nationality"]').text().trim().slice(-3, -1) || "N/A",
             position: position,
-            age: $(row).find('[data-stat="age"]').text().trim() || "N/A",
-            minutes: $(row).find('[data-stat="minutes"]').text().trim() || "0",
+            age: $(row).find('[data-stat="age"]').text().trim().slice(0, 2) || "N/A",
+            minutes: $(row).find('[data-stat="minutes"]').text().trim() || "0"
+        };
+    }
+
+    mapFieldPlayerStats($, row) {
+        return {
             goals: $(row).find('[data-stat="goals"]').text().trim() || "0",
             assists: $(row).find('[data-stat="assists"]').text().trim() || "0",
             penaltiesMade: $(row).find('[data-stat="pens_made"]').text().trim() || "0",
@@ -84,16 +65,14 @@ export class PlayerStatsExtractor {
             npxG: $(row).find('[data-stat="npxg"]').text().trim() || "0.0",
             xAG: $(row).find('[data-stat="xg_assist"]').text().trim() || "0.0",
             sca: $(row).find('[data-stat="sca"]').text().trim() || "0",
-            gca: $(row).find('[data-stat="gca"]').text().trim() || "0",
-            passesCompleted: $(row).find('[data-stat="passes_completed"]').text().trim() || "0",
-            passesAttempted: $(row).find('[data-stat="passes"]').text().trim() || "0",
-            passCompletionPercentage: $(row).find('[data-stat="passes_pct"]').text().trim() || "0",
-            progressivePasses: $(row).find('[data-stat="progressive_passes"]').text().trim() || "0",
-            carries: $(row).find('[data-stat="carries"]').text().trim() || "0",
-            progressiveCarries: $(row).find('[data-stat="progressive_carries"]').text().trim() || "0",
-            takeOns: $(row).find('[data-stat="take_ons"]').text().trim() || "0",
-            takeOnsWon: $(row).find('[data-stat="take_ons_won"]').text().trim() || "0"
-
+            crosses: $(row).find('[data-stat="crosses"]').text().trim() || "0",
+            tacklesWon: $(row).find('[data-stat="tackles_won"]').text().trim() || "0",
+            penaltiesConceded: $(row).find('[data-stat="pens_conceded"]').text().trim() || "0",
+            ownGoals: $(row).find('[data-stat="own_goals"]').text().trim() || "0",
+            recoveries: $(row).find('[data-stat="recoveries"]').text().trim() || "0",
+            aerialDuelsWon: $(row).find('[data-stat="aerial_duels_won"]').text().trim() || "0",
+            aerialDuelsLost: $(row).find('[data-stat="aerial_duels_lost"]').text().trim() || "0",
+            aerialDuelsWonPercentage: $(row).find('[data-stat="aerial_duels_won_pct"]').text().trim() || "0.0"
         };
     }
 

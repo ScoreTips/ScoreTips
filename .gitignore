@@ -2,7 +2,10 @@ a fazer.txt
 node_modules
 jsonService_DEPRECATED.js
 credencial.txt
-/python
+/python/old
+/python/js
+/python/stats.py 
+/python/player_stats.py
 *.pdf
 testeStats.js
 /constants

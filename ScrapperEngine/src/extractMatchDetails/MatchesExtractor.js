@@ -5,6 +5,8 @@ export class MatchesExtractor {
     this.teamNameMapping = {
       "Ath Paranaense": "Athletico Paranaense",
       "Atl Goianiense": "Atlético Goianiense",
+      // "Central Córdoba (SdE)": `Cen. Córdoba–SdE`,
+      // "Argentinos Juniors": "Arg Juniors"
     };
   }
 
