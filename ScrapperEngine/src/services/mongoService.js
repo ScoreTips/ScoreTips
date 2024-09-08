@@ -4,11 +4,14 @@ import dotenv from "dotenv";
 dotenv.config({ path: '../constants/.env' });
 
 export class MongoService {
-    constructor() {
+    constructor(collection) {
         // this.client = new MongoClient(process.env.mongoUri);
         
         this.client = new MongoClient('mongodb+srv://scoretipsadmin:mq87igW7MQJX7tTp@scoretips.ogtez.mongodb.net/?retryWrites=true&w=majority&appName=ScoreTips');
         this.database = this.client.db('matchesData');
+        // this.collection = "Inglaterra_Premier_League"
+        this.collection = collection
+
     }
 
     async connect() {
@@ -27,7 +30,7 @@ export class MongoService {
         try {
             let matchId = `${match.date}_${match.homeTeam}_vs_${match.awayTeam}`
             await this.connect();
-            const collection = this.database.collection('International');
+            const collection = this.database.collection(this.collection);
             const query = { match_id: matchId };
             const existingMatch = await collection.findOne(query);
             return existingMatch !== null;
@@ -40,7 +43,7 @@ export class MongoService {
     async saveMatchData(matchData) {
         try {
             await this.connect();
-            const collection = this.database.collection('International');
+            const collection = this.database.collection(this.collection);
             await collection.insertOne(matchData);
         } catch (error) {
             logMessage(`Failed to save match data: ${error.message}`);

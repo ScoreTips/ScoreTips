@@ -28,7 +28,7 @@ class StatisticsEngine {
         // console.log('Estatísticas dos jogadores:', playerStatistics);
 
         // Salvar estatísticas no banco de dados
-        const collection = this.mongoService.getCollection('International');
+        const collection = this.mongoService.getCollection('Inglaterra_Premier_League');
         await collection.insertOne({
             teamName,
             statistics,

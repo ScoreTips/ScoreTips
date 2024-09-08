@@ -4,13 +4,13 @@ class MatchRepository {
     }
 
     async getAllTeams() {
-        const collection = this.mongoService.getCollection('International');
+        const collection = this.mongoService.getCollection('Inglaterra_Premier_League');
         const teams = await collection.distinct('home_team');
         return teams;
     }
 
     async getMatchesByTeam(teamName) {
-        const collection = this.mongoService.getCollection('International');
+        const collection = this.mongoService.getCollection('Inglaterra_Premier_League');
         const matches = await collection.find({
             $or: [
                 { "home_team": teamName },
@@ -21,7 +21,7 @@ class MatchRepository {
     }
     // Implementa o método getTeamPlayers
     async getTeamPlayers(teamName) {
-        const collection = this.mongoService.getCollection('International');
+        const collection = this.mongoService.getCollection('Inglaterra_Premier_League');
         console.log(`Buscando jogadores para o time: ${teamName}`);
         
         const matches = await collection.find({
@@ -37,8 +37,27 @@ class MatchRepository {
             if (match.player_stats && Array.isArray(match.player_stats)) {
                 match.player_stats.forEach(player => {
                     let playerTeam = match.home_team === teamName ? match.home_team : match.away_team;
+
                     if(playerTeam == 'Central Córdoba (SdE)'){
                         playerTeam = 'Cen. Córdoba–SdE'
+                    } 
+                    if(playerTeam == 'Tottenham Hotspur'){
+                        playerTeam = 'Tottenham'
+                    }
+                    if(playerTeam == 'West Ham United'){
+                        playerTeam = 'West Ham'
+                    } 
+                    if(playerTeam == 'Nottingham Forest'){
+                        playerTeam = `Nott'ham Forest`
+                    } 
+                    if(playerTeam == 'Newcastle United'){
+                        playerTeam = 'Newcastle Utd'
+                    } 
+                    if(playerTeam == 'Manchester United'){
+                        playerTeam = 'Manchester Utd'
+                    } 
+                    if(playerTeam == 'Brighton & Hove Albion'){
+                        playerTeam = 'Brighton'
                     } 
                     
                     // Verifica se o jogador realmente pertence ao time atual

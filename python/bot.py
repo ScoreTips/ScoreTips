@@ -6,25 +6,6 @@ import os
 # API endpoint da sua aplicação Flask
 API_URL = "http://localhost:5000"
 
-# Dicionário de campeonatos e coleções no MongoDB
-championships = {
-    "Brasileiro Serie A": "Brazil_SerieTESTE",
-    "Brasileiro Serie B": "Brazil_SerieB"
-}
-
-# Times (de exemplo) para cada campeonato
-teams = {
-    "Brazil_SerieTESTE": ["Botafogo (RJ)", "Fortaleza", "Palmeiras", "Flamengo", "Cruzeiro",
-                          "São Paulo", "Bahia", "Vasco da Gama", "Atlético Mineiro", "Internacional",
-                          "Red Bull Bragantino", "Athletico-PR", "Criciúma", "Juventude", "Grêmio",
-                          "Fluminense", "Corinthians", "Vitória", "Cuiabá", "Atlético Goianiense"],
-
-    "Brazil_SerieB": ["Grêmio Novorizontino", "Mirassol Futebol Clube", "Santos", "Vila Nova", "Avaí",
-                      "Ceará", "Sport Recife", "América (MG)", "Goiás", "Operário",
-                      "Coritiba", "Amazonas", "Ponte Preta", "Botafogo (SP)", "Paysandu",
-                      "CRB", "Brusque Futebol Clube", "Ituano", "Chapecoense", "Guarani"]
-}
-
 # Função inicial do comando /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
@@ -47,44 +28,116 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if step == 'select_type':
         if query.data == 'comparison':  # Comparação de times
             context.user_data['type'] = 'comparison'
-            keyboard = [[InlineKeyboardButton(champ, callback_data=champ) for champ in championships]]
+            response = requests.get(f"{API_URL}/list_countries")
+            countries = response.json() if response.status_code == 200 else []
+
+            if countries:
+                keyboard = [[InlineKeyboardButton(country, callback_data=country)] for country in countries]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                await query.edit_message_text('Escolha o país:', reply_markup=reply_markup)
+                context.user_data['step'] = 'select_country_comparison'
+            else:
+                await query.edit_message_text('Erro ao buscar os países.')
+
+        elif query.data == 'player_stats':  # Probabilidades de jogadores
+            context.user_data['type'] = 'player_stats'
+            response = requests.get(f"{API_URL}/list_countries")
+            countries = response.json() if response.status_code == 200 else []
+
+            if countries:
+                keyboard = [[InlineKeyboardButton(country, callback_data=country)] for country in countries]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                await query.edit_message_text('Escolha o país:', reply_markup=reply_markup)
+                context.user_data['step'] = 'select_country_player'
+            else:
+                await query.edit_message_text('Erro ao buscar os países.')
+
+    # Seleção do país para comparação de times
+    elif step == 'select_country_comparison':
+        selected_country = query.data
+        context.user_data['country'] = selected_country
+
+        response = requests.get(f"{API_URL}/list_championships?country={selected_country}")
+        championships = response.json() if response.status_code == 200 else []
+
+        if championships:
+            filtered_championships = [' '.join(champ.rsplit('_', 1)) for champ in championships if champ.startswith(f"{selected_country}_")]            
+
+            filtered_championships = sorted(filtered_championships)
+
+
+            keyboard = [
+                [InlineKeyboardButton(champ.split('_', 1)[1], callback_data=champ)] for champ in filtered_championships
+            ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text('Selecione o campeonato:', reply_markup=reply_markup)
             context.user_data['step'] = 'select_championship_comparison'
-        elif query.data == 'player_stats':  # Probabilidades de jogadores
-            context.user_data['type'] = 'player_stats'
-            keyboard = [[InlineKeyboardButton(champ, callback_data=champ) for champ in championships]]
+        else:
+            await query.edit_message_text(f"Erro ao buscar os campeonatos para o país {selected_country}.")
+
+    # Seleção do país para probabilidades de jogadores
+    elif step == 'select_country_player':
+        selected_country = query.data
+        context.user_data['country'] = selected_country
+
+        response = requests.get(f"{API_URL}/list_championships?country={selected_country}")
+        championships = response.json() if response.status_code == 200 else []
+
+        if championships:
+            filtered_championships = [champ for champ in championships if champ.startswith(f"{selected_country}_")]
+
+            # Mostrar os nomes dos campeonatos sem o prefixo do país
+            keyboard = [
+                [InlineKeyboardButton(champ.split('_', 1)[1], callback_data=champ)] for champ in filtered_championships
+            ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text('Selecione o campeonato:', reply_markup=reply_markup)
             context.user_data['step'] = 'select_championship_player'
+        else:
+            await query.edit_message_text(f"Erro ao buscar os campeonatos para o país {selected_country}.")
 
     # Seleção do campeonato para comparação de times
     elif step == 'select_championship_comparison':
         selected_championship = query.data
-        collection_name = championships.get(selected_championship)
-        context.user_data['championship'] = collection_name
+        context.user_data['championship'] = selected_championship
 
-        message = f"Você escolheu o campeonato: {selected_championship}. Agora, selecione o primeiro time:"
-        await show_teams(query, context, teams[collection_name], message)
-        context.user_data['step'] = 'select_first_team'
+        # Buscar os times do campeonato
+        response = requests.get(f"{API_URL}/list_teams?collection={selected_championship}")
+        teams = response.json() if response.status_code == 200 else []
+
+        if teams:
+            message = f"Você escolheu o campeonato: {selected_championship.split('_', 1)[1]}. Agora, selecione o primeiro time:"
+            context.user_data['teams'] = teams  # Armazena os times na user_data
+            await show_teams(query, context, teams, message)
+            context.user_data['step'] = 'select_first_team'
+        else:
+            await query.edit_message_text(f"Erro ao buscar os times para o campeonato {selected_championship}.")
 
     # Seleção do campeonato para jogadores
     elif step == 'select_championship_player':
         selected_championship = query.data
-        collection_name = championships.get(selected_championship)
-        context.user_data['championship'] = collection_name
+        context.user_data['championship'] = selected_championship
 
-        message = f"Você escolheu o campeonato: {selected_championship}. Agora, selecione o time para ver os jogadores:"
-        await show_teams(query, context, teams[collection_name], message)
-        context.user_data['step'] = 'select_team_for_player'
+        # Buscar os times do campeonato
+        response = requests.get(f"{API_URL}/list_teams?collection={selected_championship}")
+        teams = response.json() if response.status_code == 200 else []
+
+        if teams:
+            message = f"Você escolheu o campeonato: {selected_championship.split('_', 1)[1]}. Agora, selecione o time para ver os jogadores:"
+            await show_teams(query, context, teams, message)
+            context.user_data['step'] = 'select_team_for_player'
+        else:
+            await query.edit_message_text(f"Erro ao buscar os times para o campeonato {selected_championship}.")
 
     # Seleção do primeiro time para comparação de times
     elif step == 'select_first_team':
         selected_team = query.data
         context.user_data['team1'] = selected_team  # Salva o time selecionado
 
+        teams = context.user_data.get('teams', [])  # Recupera os times da user_data
+
         message = f"Você escolheu o time {selected_team}. Agora, selecione o segundo time:"
-        await show_teams(query, context, teams[context.user_data['championship']], message)
+        await show_teams(query, context, teams, message)
         context.user_data['step'] = 'select_second_team'
 
     # Seleção do segundo time para comparação
@@ -206,4 +259,3 @@ if __name__ == '__main__':
 
     print("Bot rodando...")
     app.run_polling()
-

@@ -34,14 +34,17 @@ class PlayerStatisticsGenerator {
 
             // Inicializar arrays para as estatísticas
             const goalsArray = [];
+            const assistsArray = []
             const shotsArray = [];
             const shotsOnTargetArray = [];
             const tacklesArray = [];
             const yellowCardsArray = [];
             const redCardsArray = [];
+            
             // Coletar os dados das partidas para cada estatística
             matches.forEach(match => {
                 goalsArray.push(parseInt(match.goals, 10) || 0);
+                assistsArray.push(parseInt(match.assists, 10) || 0);
                 shotsArray.push(parseInt(match.shots, 10) || 0);
                 shotsOnTargetArray.push(parseInt(match.shotsOnTarget, 10) || 0);
                 tacklesArray.push(parseInt(match.tackles, 10) || 0);
@@ -51,6 +54,7 @@ class PlayerStatisticsGenerator {
 
             // Cálculo das probabilidades cumulativas de eventos
             const goalProbabilities = this.calculateCumulativeProbabilities(goalsArray);
+            const assistsProbabilities = this.calculateCumulativeProbabilities(assistsArray);
             const shotsProbabilities = this.calculateCumulativeProbabilities(shotsArray);
             const shotsOnTargetProbabilities = this.calculateCumulativeProbabilities(shotsOnTargetArray);
             const tacklesProbabilities = this.calculateCumulativeProbabilities(tacklesArray);
@@ -61,6 +65,7 @@ class PlayerStatisticsGenerator {
             playerStatistics[playerName] = {
                 name: playerName,
                 position: matches[0].position, // A posição deve ser consistente entre as partidas
+                assists: assistsProbabilities,
                 goals: goalProbabilities,
                 shots: shotsProbabilities,
                 shotsOnTarget: shotsOnTargetProbabilities,

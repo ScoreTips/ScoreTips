@@ -3,6 +3,7 @@ import { PlayerStatsExtractor } from "../extractMatchDetails/PlayerStatsExtracto
 import { StatsExtraExtractor } from "../extractMatchDetails/StatsExtraExtractor.js";
 import { TeamStatsExtractor } from "../extractMatchDetails/TeamStatsExtractor.js";
 import { EventsExtractor } from "../extractMatchDetails/EventsExtractor.js";
+import { parseDate } from "../utils/dateParser.js"; // Criamos uma função para parsear a data
 import { FetchService } from "./fetchService.js";
 import { MongoService } from "./mongoService.js";
 import { logMessage } from "../utils/logger.js";
@@ -10,9 +11,9 @@ import { sleep } from "../utils/sleep.js";
 import * as cheerio from "cheerio";
 
 export class ScrapeService {
-  constructor() {
+  constructor(collection) {
     this.fetchService = new FetchService();
-    this.mongoService = new MongoService();
+    this.mongoService = new MongoService(collection);
     this.matchesExtractor = new MatchesExtractor();
     this.playerStatsExtractor = new PlayerStatsExtractor();
     this.statsExtraExtractor = new StatsExtraExtractor();
@@ -21,6 +22,8 @@ export class ScrapeService {
   }
 
   async scrapeAndSaveTeamData(teamUrls) {
+    const today = new Date(); // Data de hoje
+
     for (let i = 0; i < teamUrls.length; i++) {
         const url = teamUrls[i];
         const teamHtml = await this.fetchService.fetchHTML(url);
@@ -31,8 +34,19 @@ export class ScrapeService {
         logMessage(`Starting to scrape matches for: ${teamName}`);
 
         for (const match of matches) {
+            const matchDate = parseDate(match.date); 
+
+            // Verifica se a partida já aconteceu (antes de hoje)
+            if (!matchDate || matchDate >= today) {
+                logMessage(`Partida ${match.homeTeam} vs ${match.awayTeam} ainda não aconteceu ou data inválida. Ignorando...`);
+                continue; // Pula a partida se ela for futura ou se a data estiver inválida
+            } else {
+                logMessage(`Partida já aconteceu em ${matchDate.toDateString()}, hoje: ${today.toDateString()}`);
+            }
+
             let homeTeam = match.homeTeam;
             let awayTeam = match.awayTeam;
+
             // Verifica se a partida já foi inserida no banco de dados
             const matchExists = await this.mongoService.checkMatchExists(match);
 
@@ -80,15 +94,10 @@ export class ScrapeService {
             } else {
                 logMessage(`Partida ${homeTeam || match.homeTeam} vs ${awayTeam || match.awayTeam} já existente no banco de dados.`);
             }
-
-            // Pausa após cada 2 requisições
-            // if ((i + 1) % 2 === 0) {
-            //     logMessage("Aguardando 1 minuto antes de ir para o próximo caso...");
-            //     await new Promise((resolve) => setTimeout(resolve, 60000)); // 5 minutos
-            // }
         }
     }
 }
+
 
 
   getTeamNameFromUrl(url) {
