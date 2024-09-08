@@ -5,11 +5,12 @@ from matplotlib.backends.backend_pdf import PdfPages
 from pymongo import MongoClient
 from flask import Flask, request, send_file, jsonify
 import io
+from config import mongoUri
 
 app = Flask(__name__)
 
 # Conectar ao MongoDB
-client = MongoClient("mongodb+srv://scoretipsadmin:mq87igW7MQJX7tTp@scoretips.ogtez.mongodb.net/?retryWrites=true&w=majority&appName=ScoreTips")
+client = MongoClient(mongoUri)
 database = client['Statistics']
 
 @app.route('/list_countries', methods=['GET'])

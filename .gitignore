@@ -6,6 +6,7 @@ credencial.txt
 /python/js
 /python/stats.py 
 /python/player_stats.py
+/python/config.py
 *.pdf
 testeStats.js
 /constants
