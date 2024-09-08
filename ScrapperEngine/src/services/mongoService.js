@@ -33,6 +33,7 @@ export class MongoService {
             const collection = this.database.collection(this.collection);
             const query = { match_id: matchId };
             const existingMatch = await collection.findOne(query);
+            console.log('collection:', this.collection)
             return existingMatch !== null;
         } catch (error) {
             logMessage(`Failed to check match existence: ${error.message}`);

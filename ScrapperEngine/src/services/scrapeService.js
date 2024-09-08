@@ -56,13 +56,13 @@ export class ScrapeService {
                 const h1Text = $("h1").text();
                 const matchTitle = h1Text.match(/(.+?) vs\.\s(.+?) Relatório da Partida/);
 
-                if (matchTitle) {
-                    homeTeam = matchTitle[1].trim();
-                    awayTeam = matchTitle[2].trim();
-                } else {
-                    logMessage("Título da partida não encontrado, pulando...");
-                    continue;
-                }
+                // if (matchTitle) {
+                //     homeTeam = matchTitle[1].trim();
+                //     awayTeam = matchTitle[2].trim();
+                // } else {
+                //     logMessage("Título da partida não encontrado, pulando...");
+                //     continue;
+                // }
 
                 // Extração de eventos da partida
                 const events = this.eventsExtractor.extractEvents(matchHtml, homeTeam, awayTeam);

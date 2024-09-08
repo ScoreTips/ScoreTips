@@ -1,5 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+from config import token
 import requests
 import os
 
@@ -250,7 +251,7 @@ def chunk_list(lst, n):
 
 # Função principal
 if __name__ == '__main__':
-    TOKEN = '7412464011:AAHIxA8e3NZd6wLzyFWByVCxAZhMjkOqaEY'
+    TOKEN = token
     app = ApplicationBuilder().token(TOKEN).build()
 
     # Handlers
