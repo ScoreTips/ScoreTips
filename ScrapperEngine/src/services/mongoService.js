@@ -7,7 +7,7 @@ export class MongoService {
     constructor(collection) {
         // this.client = new MongoClient(process.env.mongoUri);
         
-        this.client = new MongoClient('mongodb+srv://scoretipsadmin:mq87igW7MQJX7tTp@scoretips.ogtez.mongodb.net/?retryWrites=true&w=majority&appName=ScoreTips');
+        this.client = new MongoClient(process.env.mongoUri);
         this.database = this.client.db('matchesData');
         // this.collection = "Inglaterra_Premier_League"
         this.collection = collection
