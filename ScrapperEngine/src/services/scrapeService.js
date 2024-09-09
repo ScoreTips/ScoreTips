@@ -59,7 +59,7 @@ export class ScrapeService {
                 // if (matchTitle) {
                 //     homeTeam = matchTitle[1].trim();
                 //     awayTeam = matchTitle[2].trim();
-                // } else {
+                // } else { 
                 //     logMessage("Título da partida não encontrado, pulando...");
                 //     continue;
                 // }
@@ -90,7 +90,7 @@ export class ScrapeService {
                 // Inserir no banco de dados
                 await this.mongoService.saveMatchData(matchData);
                 logMessage(`Partida ${homeTeam} vs ${awayTeam} salva no banco de dados.`);
-                await new Promise((resolve) => setTimeout(resolve, 8100));
+                await new Promise((resolve) => setTimeout(resolve, 10000));
             } else {
                 logMessage(`Partida ${homeTeam || match.homeTeam} vs ${awayTeam || match.awayTeam} já existente no banco de dados.`);
             }
